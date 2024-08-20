@@ -759,7 +759,6 @@ class VlmCausalLM(Model):
         bypass_hpu_graph: Optional[bool] = None,
     ) -> Tuple[torch.Tensor, List[Tuple[torch.Tensor, torch.Tensor]]]:
         # Model Forward
-        cache_position = torch.arange(token_idx.item(), device=input_ids.device)
         kwargs = {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
@@ -767,7 +766,6 @@ class VlmCausalLM(Model):
             "token_idx": token_idx,
             "pixel_values": pixel_values,
             "image_sizes": image_sizes,
-            "cache_position": cache_position
         }
 
         hpu_kwargs = {}
@@ -1112,7 +1110,6 @@ class VlmCausalLM(Model):
                 f"You need to decrease `--max-batch-prefill-tokens`"
             )
 
-        self.model.clear_inputs()
         global BASE_IMAGE_TOKENS, MAX_TOTAL_TOKENS, MAX_BATCH_TOTAL_TOKENS, PREFILL_WARMUP_BATCH_SIZE_LIST, PREFILL_WARMUP_SEQLEN_LIST, DECODE_WARMUP_BATCH_SIZE_LIST
         max_input_length =  batches[0].input_ids.shape[1]
         max_prefill_batch_size = batches[0].input_ids.shape[0]
@@ -1165,7 +1162,6 @@ class VlmCausalLM(Model):
                 f"Memory stats: {mem_stats} "
             )
 
-        self.model.clear_inputs()
         max_decode_batch_size = math.floor(MAX_BATCH_TOTAL_TOKENS / MAX_TOTAL_TOKENS)
         batch_size = max_prefill_batch_size * 2
         # Decode warmup with bigger batch_size
@@ -1214,5 +1210,4 @@ class VlmCausalLM(Model):
                 f"Memory stats: {mem_stats}"
             )
 
-        self.model.clear_inputs()
         return MAX_BATCH_TOTAL_TOKENS
