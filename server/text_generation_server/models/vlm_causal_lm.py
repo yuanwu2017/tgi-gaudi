@@ -759,13 +759,15 @@ class VlmCausalLM(Model):
         bypass_hpu_graph: Optional[bool] = None,
     ) -> Tuple[torch.Tensor, List[Tuple[torch.Tensor, torch.Tensor]]]:
         # Model Forward
+        cache_position = torch.arange(token_idx.item(), device=input_ids.device)
         kwargs = {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
             "past_key_values": past_key_values,
             "token_idx": token_idx,
             "pixel_values": pixel_values,
-            "image_sizes": image_sizes    
+            "image_sizes": image_sizes,
+            "cache_position": cache_position
         }
 
         hpu_kwargs = {}

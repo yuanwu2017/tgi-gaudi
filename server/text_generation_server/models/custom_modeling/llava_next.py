@@ -134,6 +134,7 @@ class LlavaNextForConditionalGeneration(GaudiLlavaNextForConditionalGeneration):
             - add the process of merging images into inputs_embeds
             """
             token_idx = kwargs.get("token_idx", None)
+            cache_position = kwargs.get("cache_position", None)
             if token_idx is None:
                 return super().prepare_inputs_for_generation(
                     input_ids=input_ids,
@@ -279,6 +280,7 @@ class LlavaNextForConditionalGeneration(GaudiLlavaNextForConditionalGeneration):
                         "attention_mask": attention_mask,
                         "token_idx": token_idx,
                         "labels": labels,
+                        "cache_position": cache_position
                     }
                 )
 
