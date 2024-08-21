@@ -251,7 +251,8 @@ docker run -p 8080:80 \
 
 ### LLava-next 7B BF16 on 1 Gaudi2 card
 
-Image usually occupy about 2000 tokens in input, For examples image of size 512x512 occupys about 2800 tokens. max-input-tokens must be larger than the token number of image. Otherwise the image may be truncated. We set the BASE_IMAGE_TOKENS=2048 as the default image tokens number, it is the minimum value of max-input-tokens. Therefore the warmup will generate graphs with sequence length from BASE_IMAGE_TOKENS to max-input-tokens. For LLava-next 7B model the maximum value of max-batch-prefill-tokens is 16384.
+Image usually occupy about 2000 tokens in input, For examples image of size 512x512 occupys about 2800 tokens. max-input-tokens must be larger than the token number of image. Otherwise the image may be truncated. We set the BASE_IMAGE_TOKENS=2048 as the default image tokens number, it is the minimum value of max-input-tokens. If you want to change the BASE_IMAGE_TOKENS value,
+Please set the environment variable BASE_IMAGE_TOKENS. The warmup will generate graphs with input length from BASE_IMAGE_TOKENS to max-input-tokens. For LLava-next 7B model the maximum value of max-batch-prefill-tokens is 16384. The max-batch-prefill-tokens is an integer multiple of max-input-tokens. because of prefill_batch_size = max-batch-prefill-tokens/max-input-tokens.
 
 ```bash
 model=llava-hf/llava-v1.6-mistral-7b-hf
