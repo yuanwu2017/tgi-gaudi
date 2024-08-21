@@ -255,7 +255,7 @@ Image usually occupy about 2000 tokens in input, For examples image of size 512x
 
 ```bash
 model=llava-hf/llava-v1.6-mistral-7b-hf
-hf_token=YOUR_ACCESS_TOKEN   # Llama2 is a gated model and requires a special access token
+hf_token=YOUR_ACCESS_TOKEN   # HF access token
 volume=$PWD/data   # share a volume with the Docker container to avoid downloading weights every run
 
 docker run -p 8080:80 \
