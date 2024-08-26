@@ -303,6 +303,8 @@ docker run -p 8080:80 \
    -e HF_HUB_ENABLE_HF_TRANSFER=1 \
    -e HUGGING_FACE_HUB_TOKEN=$hf_token \
    -e QUANT_CONFIG=./quantization_config/maxabs_quant.json \
+   -e USE_FLASH_ATTENTION=true \
+   -e FLASH_ATTENTION_RECOMPUTE=true \
    --cap-add=sys_nice \
    --ipc=host \
    ghcr.io/huggingface/tgi-gaudi:2.0.1 \
