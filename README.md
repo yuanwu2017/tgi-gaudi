@@ -284,7 +284,7 @@ curl -N 127.0.0.1:8080/generate_stream \
     -H 'Content-Type: application/json'
 ```
 
-Currently the model cannot support the multi-cards inference.
+Currently Llava-v1.16 inference on multi-cards is not supported.
 
 ### llava-v1.6-mistral-7b-hf FP8 on 1 Gaudi2 card
 
