@@ -110,7 +110,7 @@ For more information and documentation about Text Generation Inference, checkout
 
 ## Running TGI with FP8 precision
 
-TGI supports FP8 precision runs within the limits provided by [Habana Quantization Toolkit](https://docs.habana.ai/en/latest/PyTorch/Inference_on_PyTorch/Inference_Using_FP8.html). Models with FP8 can be ran by properly setting QUANT_CONFIG environment variable. Detailed instruction on how to use that variable can be found in [Optimum Habana FP8 guide](https://github.com/huggingface/optimum-habana/tree/main/examples/text-generation#running-with-fp8). Summarising that instruction in TGI cases:
+TGI supports FP8 precision runs within the limits provided by [Intel Neural Compressor (INC)](https://docs.habana.ai/en/latest/PyTorch/Inference_on_PyTorch/Inference_Using_FP8.html). Models with FP8 can be ran by properly setting QUANT_CONFIG environment variable. Detailed instruction on how to use that variable can be found in [Optimum Habana FP8 guide](https://github.com/huggingface/optimum-habana/tree/main/examples/text-generation#running-with-fp8). From 2.0.4 release, Intel Neural Compressor (INC) is used by default for measuring and quantization. Habana Quantization Toolkit(HQT) will be removed in future releases. To use HQT, disable INC by setting `-e USE_INC=0`. Summarising that instruction in TGI cases:
 
 1. Measure quantization statistics of requested model by using [Optimum Habana measurement script](https://github.com/huggingface/optimum-habana/tree/main/examples/text-generation#running-with-fp8:~:text=use_deepspeed%20%2D%2Dworld_size%208-,run_lm_eval.py,-%5C%0A%2Do%20acc_70b_bs1_measure.txt)
 2. Run requested model in TGI with proper QUANT_CONFIG setting - e.g. `-e QUANT_CONFIG=./quantization_config/maxabs_quant.json`.
@@ -145,6 +145,10 @@ docker run -p 8080:80 \
    -e PREFILL_BATCH_BUCKET_SIZE=1 \
    -e BATCH_BUCKET_SIZE=16 \
    -e PAD_SEQUENCE_TO_MULTIPLE_OF=128 \
+   -e ENABLE_HPU_GRAPH=true \
+   -e LIMIT_HPU_GRAPH=true \
+   -e USE_FLASH_ATTENTION=true \
+   -e FLASH_ATTENTION_RECOMPUTE=true \
    --cap-add=sys_nice \
    --ipc=host \
    ghcr.io/huggingface/tgi-gaudi:2.0.1 \
@@ -172,8 +176,12 @@ docker run -p 8080:80 \
    -e HF_HUB_ENABLE_HF_TRANSFER=1 \
    -e HUGGING_FACE_HUB_TOKEN=$hf_token \
    -e PREFILL_BATCH_BUCKET_SIZE=1 \
-   -e BATCH_BUCKET_SIZE=64 \
+   -e BATCH_BUCKET_SIZE=16 \
    -e PAD_SEQUENCE_TO_MULTIPLE_OF=128 \
+   -e ENABLE_HPU_GRAPH=true \
+   -e LIMIT_HPU_GRAPH=true \
+   -e USE_FLASH_ATTENTION=true \
+   -e FLASH_ATTENTION_RECOMPUTE=true \
    -e QUANT_CONFIG=./quantization_config/maxabs_quant.json \
    --cap-add=sys_nice \
    --ipc=host \
@@ -182,7 +190,7 @@ docker run -p 8080:80 \
    --max-input-tokens 1024 \
    --max-batch-prefill-tokens 4096 \
    --max-total-tokens 2048 \
-   --max-batch-size 64
+   --max-batch-size 16
 ```
 
 ### LLama 70b BF16 on 8 Gaudi2 card
@@ -203,6 +211,10 @@ docker run -p 8080:80 \
    -e PREFILL_BATCH_BUCKET_SIZE=1 \
    -e BATCH_BUCKET_SIZE=256 \
    -e PAD_SEQUENCE_TO_MULTIPLE_OF=128 \
+   -e ENABLE_HPU_GRAPH=true \
+   -e LIMIT_HPU_GRAPH=true \
+   -e USE_FLASH_ATTENTION=true \
+   -e FLASH_ATTENTION_RECOMPUTE=true \
    --cap-add=sys_nice \
    --ipc=host \
    ghcr.io/huggingface/tgi-gaudi:2.0.1 \
@@ -234,8 +246,12 @@ docker run -p 8080:80 \
    -e HUGGING_FACE_HUB_TOKEN=$hf_token \
    -e PT_HPU_ENABLE_LAZY_COLLECTIVES=true \
    -e PREFILL_BATCH_BUCKET_SIZE=1 \
-   -e BATCH_BUCKET_SIZE=512 \
+   -e BATCH_BUCKET_SIZE=256 \
    -e PAD_SEQUENCE_TO_MULTIPLE_OF=128 \
+   -e ENABLE_HPU_GRAPH=true \
+   -e LIMIT_HPU_GRAPH=true \
+   -e USE_FLASH_ATTENTION=true \
+   -e FLASH_ATTENTION_RECOMPUTE=true \
    -e QUANT_CONFIG=./quantization_config/maxabs_quant.json \
    --cap-add=sys_nice \
    --ipc=host \
@@ -244,8 +260,8 @@ docker run -p 8080:80 \
    --max-input-tokens 1024 \
    --max-batch-prefill-tokens 16384 \
    --max-total-tokens 2048 \
-   --max-batch-size 512 \
-   --max-concurrent-requests 700 \
+   --max-batch-size 256 \
+   --max-concurrent-requests 400 \
    --sharded true \
    --num-shard 8
 ```
