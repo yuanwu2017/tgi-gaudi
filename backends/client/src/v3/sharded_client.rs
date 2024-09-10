@@ -1,12 +1,17 @@
-/// Copyright (C) 2024 Habana Labs, Ltd. an Intel Company.
-
-use crate::client::{DecodeTimings, PrefillTimings};
 /// Multi shard Client
-use crate::{Batch, CachedBatch, Client, Generation, HealthResponse, ShardInfo};
+use crate::{v3, Health, ShardInfo};
 use crate::{ClientError, Result};
+
+use crate::v3::{Chunk, InfoResponse, Input};
+use async_trait::async_trait;
 use futures::future::join_all;
 use tonic::transport::Uri;
 use tracing::instrument;
+use v3::client::{DecodeTimings, PrefillTimings};
+use v3::{
+    Batch, CachedBatch, Client, Generation, GrammarType, HealthResponse,
+    NextTokenChooserParameters, Request, StoppingCriteriaParameters,
+};
 
 #[derive(Debug, Clone)]
 /// Text Generation Inference gRPC multi client
@@ -49,7 +54,7 @@ impl ShardedClient {
             .iter_mut()
             .map(|client| client.info())
             .collect();
-        join_all(futures).await.pop().unwrap()
+        join_all(futures).await.pop().unwrap().map(ShardInfo::from)
     }
 
     /// GRPC health check
@@ -100,7 +105,6 @@ impl ShardedClient {
         max_prefill_tokens: u32,
         max_total_tokens: u32,
         max_batch_size: Option<usize>,
-        model_id: &str,
     ) -> Result<Option<u32>> {
         let futures: Vec<_> = self
             .clients
@@ -111,7 +115,6 @@ impl ShardedClient {
                     max_prefill_tokens,
                     max_total_tokens,
                     max_batch_size,
-                    model_id
                 ))
             })
             .collect();
@@ -187,5 +190,72 @@ impl ShardedClient {
             }
         }
         Ok((generations, next_batch, timings))
+    }
+}
+
+impl From<InfoResponse> for ShardInfo {
+    fn from(value: InfoResponse) -> Self {
+        Self {
+            requires_padding: value.requires_padding,
+            dtype: value.dtype,
+            device_type: value.device_type,
+            window_size: value.window_size,
+            speculate: value.speculate,
+        }
+    }
+}
+
+#[async_trait]
+impl Health for ShardedClient {
+    async fn device_health(&self) -> Result<()> {
+        self.clone().health().await?;
+        Ok(())
+    }
+
+    async fn model_health(&self) -> Result<()> {
+        // Dummy batch of 1 token and 1 generated token
+        let liveness_request = Request {
+            id: u64::MAX,
+            inputs: "liveness".to_string(),
+            input_chunks: Some(Input {
+                chunks: vec![Chunk::Text("liveness".into()).into()],
+            }),
+            truncate: 10,
+            add_special_tokens: true,
+            prefill_logprobs: false,
+            parameters: Some(NextTokenChooserParameters {
+                temperature: 1.0,
+                top_k: 0,
+                top_p: 1.0,
+                typical_p: 1.0,
+                do_sample: false,
+                seed: 0,
+                repetition_penalty: 1.0,
+                frequency_penalty: 0.0,
+                watermark: false,
+                grammar: String::new(),
+                grammar_type: GrammarType::None as i32,
+            }),
+            stopping_parameters: Some(StoppingCriteriaParameters {
+                max_new_tokens: 1,
+                stop_sequences: vec![],
+                ignore_eos_token: false,
+            }),
+            top_n_tokens: 0,
+            // Block 0 is reserved for health checks
+            blocks: vec![0],
+            slots: (0..16).collect(),
+            prefix_len: 0,
+            adapter_id: None,
+        };
+        let batch = Batch {
+            id: u64::MAX,
+            requests: vec![liveness_request],
+            size: 1,
+            max_tokens: 2,
+            max_blocks: 1,
+        };
+        self.clone().prefill(batch).await?;
+        Ok(())
     }
 }

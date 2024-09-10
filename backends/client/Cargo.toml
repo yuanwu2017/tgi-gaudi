@@ -6,10 +6,11 @@ authors.workspace = true
 homepage.workspace = true
 
 [dependencies]
+async-trait = "^0.1"
+base64 = { workspace = true }
 futures = "^0.3"
 grpc-metadata = { path = "../grpc-metadata" }
 prost = "^0.12"
-rand = "0.8.5"
 thiserror = "^1.0"
 tokio = { version = "^1.32", features = ["sync"] }
 tonic = "^0.10"
