@@ -25,13 +25,13 @@ from text_generation_server.models.globals import set_adapter_to_index
 from text_generation_server.utils.adapter import AdapterInfo
 
 try:
-    from text_generation_server.models.pali_gemma import PaliGemmaBatch
+    #from text_generation_server.models.pali_gemma import PaliGemmaBatch
     from text_generation_server.models.vlm_causal_lm import (
         VlmCausalLMBatch,
     )
-    from text_generation_server.models.idefics_causal_lm import IdeficsCausalLMBatch
+    #from text_generation_server.models.idefics_causal_lm import IdeficsCausalLMBatch
 
-    VLM_BATCH_TYPES = {PaliGemmaBatch, VlmCausalLMBatch, IdeficsCausalLMBatch}
+    VLM_BATCH_TYPES = {VlmCausalLMBatch}
 except (ImportError, NotImplementedError):
     # These imports can fail on CPU/Non flash.
     VLM_BATCH_TYPES = set()

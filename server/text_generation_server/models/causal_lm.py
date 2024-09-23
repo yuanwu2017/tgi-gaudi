@@ -387,7 +387,7 @@ class CausalLMBatch(Batch):
         batch_id = batches[0].batch_id
         device = batches[0].input_ids.device
 
-        input_lengths = [b.input_length for b in batches]    
+        input_lengths = [b.input_length for b in batches]
         max_input_length = max(input_lengths)
         offsets = [max_input_length - b.input_length for b in batches]
 
